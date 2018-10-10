@@ -141,6 +141,11 @@ class wallet_api
       app::state                          get_state( string url );
 
       /**
+       * Returns the content of associated comment
+       */
+      discussion                          get_content( string author, string permlink );
+
+      /**
        * Returns vesting withdraw routes for an account.
        *
        * @param account Account to query routes
@@ -953,6 +958,7 @@ FC_API( steemit::wallet::wallet_api,
         (get_ops_in_block)
         (get_account_history)
         (get_state)
+        (get_content)
         (get_withdraw_routes)
 
         /// transaction api

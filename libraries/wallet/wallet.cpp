@@ -1035,6 +1035,11 @@ variant wallet_api::info()
    return my->info();
 }
 
+steemit::app::discussion wallet_api::get_content(string author, string permlink)
+{
+   return my->_remote_db->get_content(author, permlink);
+}
+
 variant_object wallet_api::about() const
 {
     return my->about();
