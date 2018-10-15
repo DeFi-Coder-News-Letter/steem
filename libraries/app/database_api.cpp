@@ -961,20 +961,50 @@ void database_api::set_url( discussion& d )const
 
 vector<discussion> database_api::get_content_replies( string author, string permlink )const
 {
+   return get_content_replies_paginated( author, permlink, "", "", 100 );
+}
+
+/**
+ *  This method can be used to fetch replies to an comment.
+ *
+ *  The first call should be (comment_to_retrieve author, comment_permlink, "", "", limit)
+ *  Subsequent calls should be (comment_to_retrieve author, comment_permlink, last_author, last_permlink, limit)
+ */
+vector<discussion> database_api::get_content_replies_paginated( string author, string parent_permlink, string start_comment_author, string start_comment_permlink, uint32_t limit)const
+{
+
    return my->_db.with_read_lock( [&]()
-   {
-      account_name_type acc_name = account_name_type( author );
-      const auto& by_permlink_idx = my->_db.get_index< comment_index >().indices().get< by_parent >();
-      auto itr = by_permlink_idx.find( boost::make_tuple( acc_name, permlink ) );
-      vector<discussion> result;
-      while( itr != by_permlink_idx.end() && itr->parent_author == author && to_string( itr->parent_permlink ) == permlink )
       {
-         result.push_back( discussion( *itr ) );
-         set_pending_payout( result.back() );
-         ++itr;
-      }
-      return result;
-   });
+         vector<discussion> result;
+
+#ifndef IS_LOW_MEM
+         FC_ASSERT( limit <= 100 );
+         account_name_type acc_name = account_name_type( author );
+         const auto& by_permlink_idx = my->_db.get_index< comment_index >().indices().get< by_parent >();
+         auto itr = by_permlink_idx.find( boost::make_tuple( acc_name, parent_permlink ) );
+
+         if( start_comment_permlink.size() )
+         {
+            const auto& comment = my->_db.get_comment( start_comment_author, start_comment_permlink );
+            itr = by_permlink_idx.iterator_to( comment );
+         }
+         else if( start_comment_author.size() )
+         {
+            itr = by_permlink_idx.lower_bound( start_comment_author );
+         }
+
+         result.reserve( limit );
+
+         while( itr != by_permlink_idx.end() && itr->parent_author == author && to_string( itr->parent_permlink ) == parent_permlink && result.size() < limit)
+         {
+            result.push_back( discussion( *itr ) );
+            set_pending_payout( result.back() );
+            ++itr;
+         }
+
+#endif
+         return result;
+      });
 }
 
 /**

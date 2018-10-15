@@ -308,6 +308,7 @@ class database_api
 
       discussion           get_content( string author, string permlink )const;
       vector<discussion>   get_content_replies( string parent, string parent_permlink )const;
+      vector<discussion>   get_content_replies_paginated( string parent, string parent_permlink, string start_comment_author, string start_comment_permlink, uint32_t limit)const;
 
       ///@{ tags API
       /** This API will return the top 1000 tags used by an author sorted by most frequently used */
@@ -491,6 +492,7 @@ FC_API(steemit::app::database_api,
    // content
    (get_content)
    (get_content_replies)
+   (get_content_replies_paginated)
    (get_discussions_by_author_before_date)
    (get_replies_by_last_update)
 
