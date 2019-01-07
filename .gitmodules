@@ -1,3 +1,4 @@
 [submodule "libraries/fc"]
 	path = libraries/fc
-	url = https://github.com/steemit/fc.git
+	url = https://github.com/SteemDevs/fc.git
+	branch = fix-serialization-bug-fuzzai
