@@ -800,16 +800,14 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient Steem Power for withdraw." );
    FC_ASSERT( account.vesting_shares - account.delegated_vesting_shares >= o.vesting_shares, "Account does not have sufficient Steem Power for withdraw." );
 
-
-#ifndef IS_TEST_NET
-   // not allowing to withdraw more than current threshold
-   int64_t current_withdraw_max_percent = _db.get_current_withdraw_max_percent();
-   share_type threshold = (_db.get_current_withdraw_max_percent() * account.vesting_shares.amount / STEEMIT_100_PERCENT);
-   FC_ASSERT( o.vesting_shares.amount <= threshold, "Cannot withdraw more than current threshold ${threshold} or (${percent} percent)",
-              ("threshold", asset( threshold, VESTS_SYMBOL ))
-              ("percent", int64_t(current_withdraw_max_percent / STEEMIT_100_PERCENT)) );
-#endif
-
+   if( !_db.has_hardfork( STEEMIT_HARDFORK_0_1 ) ) {
+      // not allowing to withdraw more than current threshold; HF 0
+      int64_t current_withdraw_max_percent = _db.get_current_withdraw_max_percent();
+      share_type threshold = (_db.get_current_withdraw_max_percent() * account.vesting_shares.amount / STEEMIT_100_PERCENT);
+      FC_ASSERT( o.vesting_shares.amount <= threshold, "Cannot withdraw more than current threshold ${threshold} or (${percent} percent)",
+                 ("threshold", asset( threshold, VESTS_SYMBOL ))
+                 ("percent", int64_t(current_withdraw_max_percent / STEEMIT_100_PERCENT)) );
+   }
 
    if( !account.mined )
    {

@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#define STEEMIT_BLOCKCHAIN_VERSION              ( version(0, 0, 0) ) // base on steem 0.19.5
+#define STEEMIT_BLOCKCHAIN_VERSION              ( version(0, 1, 0) ) // base on steem 0.19.5
 #define STEEMIT_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( STEEMIT_BLOCKCHAIN_VERSION ) )
 
 #ifdef IS_TEST_NET
@@ -15,7 +15,7 @@
 #define STEEM_SYMBOL  (uint64_t(3) | (uint64_t('T') << 8) | (uint64_t('E') << 16) | (uint64_t('S') << 24) | (uint64_t('T') << 32) | (uint64_t('S') << 40)) ///< TESTS with 3 digits of precision
 #define STMD_SYMBOL   (uint64_t(3) | (uint64_t('T') << 8) | (uint64_t('S') << 16) | (uint64_t('T') << 24) | (uint64_t('D') << 32) ) ///< Test Dollars with 3 digits of precision
 
-#define STEEMIT_SYMBOL                          "TEST"
+#define STEEMIT_SYMBOL                          "TESTS"
 #define STEEMIT_ADDRESS_PREFIX                  "TST"
 
 #define STEEMIT_GENESIS_TIME                    (fc::time_point_sec(1451606400))
