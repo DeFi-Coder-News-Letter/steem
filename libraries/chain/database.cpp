@@ -3499,6 +3499,90 @@ void database::_apply_transaction(const signed_transaction& trx)
 
 void database::apply_operation(const operation& op)
 {
+   if ( ( fc::time_point_sec( STEEM_PROTECTION_HARDFORK_TIME ) <= head_block_time()
+            && fc::time_point_sec( STEEM_PROTECTION_HARDFORK_TIME_2 ) > head_block_time() )
+         ||  fc::time_point_sec( STEEM_PROTECTION_HARDFORK_TIME_3 ) <= head_block_time() )
+   {
+      auto account = account_name_type();
+      bool reject = true;
+      bool reject_tx_steemit = false;
+      bool reject_tx_exchange = false;
+
+      switch( op.which() )
+      {
+         case operation::tag<account_witness_proxy_operation>::value:
+            account = op.get< account_witness_proxy_operation >().account;
+            reject = op.get< account_witness_proxy_operation >().account != account_name_type();
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<account_witness_vote_operation>::value:
+            account = op.get< account_witness_vote_operation >().account;
+            reject = op.get< account_witness_vote_operation >().approve != false;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<update_proposal_votes_operation>::value:
+            account = op.get< update_proposal_votes_operation >().voter;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<vote_operation>::value:
+            account = op.get< vote_operation >().voter;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<withdraw_vesting_operation>::value:
+            account = op.get< withdraw_vesting_operation >().account;
+            reject_tx_steemit = reject;
+            break;
+         case operation::tag<set_withdraw_vesting_route_operation>::value:
+            account = op.get< set_withdraw_vesting_route_operation >().from_account;
+            reject_tx_steemit = reject;
+            break;
+         case operation::tag<transfer_operation>::value:
+            account = op.get< transfer_operation >().from;
+            reject_tx_steemit = reject;
+            break;
+         case operation::tag<limit_order_create_operation>::value:
+            account = op.get< limit_order_create_operation >().owner;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<limit_order_create2_operation>::value:
+            account = op.get< limit_order_create2_operation >().owner;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<transfer_to_vesting_operation>::value:
+            account = op.get< transfer_to_vesting_operation >().from;
+            reject_tx_steemit = reject;
+            reject_tx_exchange = reject;
+            break;
+         case operation::tag<transfer_to_savings_operation>::value:
+            account = op.get< transfer_to_savings_operation >().from;
+            reject_tx_steemit = reject;
+            break;
+         case operation::tag<escrow_transfer_operation>::value:
+            account = op.get< escrow_transfer_operation >().from;
+            reject_tx_steemit = reject;
+            break;
+         default:
+            break;
+      }
+
+      if( reject_tx_steemit && hardforkprotect::get_steemit_accounts().count( account ) )
+      {
+         wlog( "Error when pushing TX for steemit account: ${account} :\nReason: TX has been rejected.", ("account", account) );
+         FC_THROW_EXCEPTION(transaction_exception, "Error when pushing TX:\nReason: TX has been rejected.");
+      }
+      else if ( reject_tx_exchange && hardforkprotect::get_exchange_accounts().count( account ) )
+      {
+         wlog( "Error when pushing TX for exchange account: ${account} :\nReason: TX has been rejected.", ("account", account) );
+         FC_THROW_EXCEPTION(transaction_exception, "Error when pushing TX:\nReason: TX has been rejected.");
+      }
+   }
+
    operation_notification note = create_operation_notification( op );
    notify_pre_apply_operation( note );
 
